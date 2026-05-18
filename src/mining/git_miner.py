@@ -105,7 +105,13 @@ class GitMiner:
         """
         records = []
         skipped = 0
-        kwargs = {"url": self.repo_url}
+        kwargs = {
+            "path_to_repo": self.repo_url,
+            # skip merge commits — they cause git diff-tree exit code 128
+            "only_no_merge": True,
+            # only Python files — reduces traversal time significantly
+            "only_modifications_with_file_types": [".py"],
+        }
         if self.since:
             kwargs["since"] = self.since
         if self.to:
@@ -113,10 +119,9 @@ class GitMiner:
 
         try:
             repo = Repository(**kwargs)
-            commits = list(repo.traverse_commits())
-            logger.info(f"Found {len(commits)} total commits to process")
+            logger.info("Traversing commits")
 
-            for commit in tqdm(commits, desc="Mining commits"):
+            for commit in tqdm(repo.traverse_commits(), desc="Mining commits"):
                 try:
                     # commit.msg can be None on malformed/empty commits
                     msg = commit.msg or ""

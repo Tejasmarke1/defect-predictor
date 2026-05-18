@@ -1,0 +1,15 @@
+artifact_uri: file:///D:/Data Science/projects/defect-predictor/mlruns/800032735950251978/10f3282879054d688280de64a4991c1d/artifacts
+end_time: 1779076698712
+entry_point_name: ''
+experiment_id: '800032735950251978'
+lifecycle_stage: active
+run_id: 10f3282879054d688280de64a4991c1d
+run_name: day2_feature_matrix
+run_uuid: 10f3282879054d688280de64a4991c1d
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1779076698397
+status: 3
+tags: []
+user_id: tejas
