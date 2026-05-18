@@ -1,14 +1,56 @@
-*.env
-venv/
+# Python
 __pycache__/
-*.pyc
-.DS_Store
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Environment
+.env
+*.env.local
+
+# Data (raw mined data - too large for git)
+data/raw/
+data/processed/
+# Keep datasets folder structure but not files
+data/datasets/*.csv
+data/datasets/*.arff
+
+# Models (large binary files)
+models/*.pkl
+models/*.pt
+models/*.joblib
+
+# MLflow runs
+mlruns/
+
+# Notebooks checkpoints
+.ipynb_checkpoints/
+notebooks/.ipynb_checkpoints/
+
+# IDE
+.vscode/
 .idea/
-*.log
-*.sqlite3
-*.bak
-.gitignore
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
 logs/
-data/
+*.log
 
+# Temp repos cloned during analysis
+data/raw/repos/
 
+# Coverage
+.coverage
+htmlcov/
