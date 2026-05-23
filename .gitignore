@@ -26,6 +26,10 @@ data/datasets/*.arff
 models/*.pkl
 models/*.pt
 models/*.joblib
+models/*.h5
+models/*.json
+models/*.onnx
+
 
 # MLflow runs
 mlruns/
@@ -54,3 +58,5 @@ data/raw/repos/
 # Coverage
 .coverage
 htmlcov/
+
+mlruns/

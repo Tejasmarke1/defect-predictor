@@ -70,6 +70,11 @@ MODEL = {
         "colsample_bytree": 0.8,
         "eval_metric": "logloss",
         "random_state": 42,
+        "n_splits": 5,
+        "scale_pos_weight": 3,       # revert to original
+        "min_child_weight": 5,       # NEW — forces confident splits only
+        "gamma": 1.0,
+        "early_stopping_rounds": 30,
     },
     # GNN config
     "gnn": {
