@@ -6,7 +6,7 @@ Runs the full Day 3 pipeline in sequence:
   2. evaluate.py → Generate evaluation plots
   3. shap_explainer.py → Global SHAP analysis
 
-Prints a final summary: AUC, F1 at best threshold, top 3 SHAP features.
+Prints a final summary: AUC, F1 at Mean P@20, top 3 SHAP features.
 
 Usage:
     python scripts/day3_run.py
@@ -43,7 +43,7 @@ def print_summary(train_summary: dict, eval_results: dict, top_shap) -> None:
     Print a concise end-of-day summary to stdout.
 
     Args:
-        train_summary: Dict from run_training() with mean_auc, mean_f1, best_threshold.
+        train_summary: Dict from run_training() with mean_auc, mean_f1, mean_ap.
         eval_results: Dict from run_evaluation() with roc_auc, ap, classification_report.
         top_shap: pd.Series of global feature importances (Mean |SHAP|).
     """
@@ -53,10 +53,9 @@ def print_summary(train_summary: dict, eval_results: dict, top_shap) -> None:
     logger.info(separator)
     logger.info("DAY 3 PIPELINE COMPLETE — SUMMARY")
     logger.info(separator)
-    logger.info(f"  CV Mean AUC-ROC   : {train_summary['mean_auc']:.4f}")
-    logger.info(f"  CV Mean AP        : {train_summary['mean_ap']:.4f}")
-    logger.info(f"  CV Mean F1        : {train_summary['mean_f1']:.4f}")
-    logger.info(f"  Best Threshold    : {train_summary['best_threshold']:.3f}")
+    logger.info(f"  CV Mean AUC-ROC   : {train_summary.get('mean_auc', 0):.4f}")
+    logger.info(f"  CV Mean AP        : {train_summary.get('mean_ap', 0):.4f}")
+    logger.info(f"  CV Mean F1        : {train_summary.get('mean_f1', 0):.4f}")
     logger.info(f"  OOF AUC-ROC       : {eval_results['roc_auc']:.4f}")
     logger.info(f"  OOF Avg Precision : {eval_results['ap']:.4f}")
     logger.info("  Top 3 SHAP Features:")

@@ -151,10 +151,13 @@ def prepare_kc1(labeled_df: pd.DataFrame) -> pd.DataFrame:
 
     df["is_buggy"] = pd.to_numeric(df["is_buggy"], errors="coerce").fillna(0).astype(int)
 
-    drop_cols = [c for c in ("repo_name", "dataset_source", "window_end") if c in df.columns]
+    drop_cols = [c for c in ("repo_name", "dataset_source", "bug_fix_commits_in_window") if c in df.columns]
     if drop_cols:
         df = df.drop(columns=drop_cols)
         logger.debug(f"Dropped metadata columns: {drop_cols}")
+        
+    if "window_end" in df.columns:
+        df["window_end"] = pd.to_datetime(df["window_end"], utc=True, errors="coerce").dt.tz_localize(None)
 
     present = [c for c in KC1_FEATURE_COLS if c in df.columns]
     missing = [c for c in KC1_FEATURE_COLS if c not in df.columns]
@@ -200,6 +203,16 @@ def _build_labeled_for_process(
     -------
     DataFrame with columns [file_path, window_end, is_buggy, has_git_match].
     """
+    if "window_end" in kc1_df.columns:
+        result = kc1_df[["file_path", "is_buggy", "window_end"]].copy()
+        result["has_git_match"] = True
+        
+        # Ensure window_end is datetime
+        result["window_end"] = pd.to_datetime(result["window_end"], utc=True, errors="coerce").dt.tz_localize(None)
+        
+        logger.info("Using window_end from labeled dataset; asserting has_git_match=True for all.")
+        return result
+
     last_by_filepath = (
         commits_df.groupby("file_path")["commit_date"].max()
         .reset_index().rename(columns={"commit_date": "window_end"})
@@ -418,7 +431,7 @@ def build_feature_matrix(
         process_df = pd.DataFrame(columns=["file_path"])
     else:
         process_df = extract_process_features(commits_df, matched_df)
-        process_df = process_df.drop(columns=["is_buggy", "window_end"], errors="ignore")
+        process_df = process_df.drop(columns=["is_buggy"], errors="ignore")
         logger.info(f"  Process matrix: {process_df.shape} (matched modules only)")
 
     # ── 4. AST features ───────────────────────────────────────────────────
@@ -433,6 +446,7 @@ def build_feature_matrix(
         # Rename colliding column names BEFORE merge
         feats = {AST_CYCLOMATIC_RENAME.get(k, k): v for k, v in feats.items()}
         feats["file_path"] = row["file_path"]
+        feats["window_end"] = row["window_end"]
         # Mark as all-NaN for unmatched modules (source was None)
         if source is None:
             feats = {k: (np.nan if k != "file_path" else v) for k, v in feats.items()}
@@ -442,8 +456,9 @@ def build_feature_matrix(
 
     # ── 5. Merge ──────────────────────────────────────────────────────────
     logger.info("Step 5 — Merging KC1 + process + AST …")
-    feature_df = kc1_df.merge(process_df, on="file_path", how="left")
-    feature_df = feature_df.merge(ast_df,     on="file_path", how="left")
+    merge_keys = ["file_path", "window_end"] if "window_end" in kc1_df.columns else ["file_path"]
+    feature_df = kc1_df.merge(process_df, on=merge_keys, how="left")
+    feature_df = feature_df.merge(ast_df,     on=merge_keys, how="left")
 
     # Sanity check: no _x/_y suffix columns should exist
     collision_cols = [c for c in feature_df.columns if c.endswith("_x") or c.endswith("_y")]

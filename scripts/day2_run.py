@@ -35,7 +35,7 @@ from src.features.feature_pipeline import build_feature_matrix
 # ---------------------------------------------------------------------------
 
 RAW_COMMITS_PATH = PROJECT_ROOT / "data" / "raw" / "flask_commits.csv"
-LABELED_PATH = PROJECT_ROOT / "data" / "processed" / "kc1_labeled.csv"
+LABELED_PATH = PROJECT_ROOT / "data" / "processed" / "labeled_flask.csv"
 FEATURE_MATRIX_PATH = PROJECT_ROOT / "data" / "processed" / "feature_matrix.csv"
 
 # ---------------------------------------------------------------------------
@@ -85,8 +85,8 @@ def _validate_labeled(labeled_df: pd.DataFrame) -> None:
     if missing:
         logger.error(f"Labeled DataFrame missing columns: {missing}")
         logger.error(
-            "KC1 dataset must have at least 'file_path' and 'is_buggy'. "
-            "Check data/processed/kc1_labeled.csv."
+            "Labeled dataset must have at least 'file_path' and 'is_buggy'. "
+            "Check data/processed/labeled_flask.csv."
         )
         sys.exit(1)
 

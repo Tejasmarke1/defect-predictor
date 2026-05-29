@@ -102,7 +102,7 @@ class TemporalEvaluator:
             )
             return self._stratified_fallback(df)
 
-        cutoff = max_date - pd.DateOffset(months=test_months)
+        cutoff = df["commit_date"].quantile(0.8)
         df_train = df[df["commit_date"] <= cutoff].copy()
         df_test  = df[df["commit_date"] >  cutoff].copy()
 
@@ -113,14 +113,13 @@ class TemporalEvaluator:
 
         logger.info(
             f"Temporal split (test_months={test_months}): "
-            f"cutoff={cutoff.date()}  "
+            f"cutoff={cutoff}  "
             f"train={len(df_train)}  test={len(df_test)}"
         )
 
-        if len(df_test) == 0:
+        if len(df_test) == 0 or df_test["is_buggy"].nunique() < 2:
             logger.warning(
-                "Test set is empty after temporal split — "
-                "the entire dataset may predate the cutoff. "
+                "Test set is empty or lacks both classes after temporal split. "
                 "Falling back to stratified 80/20 split."
             )
             return self._stratified_fallback(df)
@@ -251,8 +250,8 @@ def load_artifacts() -> tuple:
         oof_df: DataFrame with columns [file_path, is_buggy, oof_prob, oof_pred].
     """
     logger.info("Loading model artifacts...")
-    model = xgb.XGBClassifier()
-    model.load_model(str(MODEL_PATH))
+    import joblib
+    model = joblib.load(str(MODEL_PATH))
 
     with open(META_PATH) as f:
         meta = json.load(f)
@@ -455,7 +454,7 @@ def run_evaluation() -> dict:
     y_true = oof_df["is_buggy"].values
     y_prob = oof_df["oof_prob"].values
     y_pred = oof_df["oof_pred"].values
-    best_threshold = meta["best_threshold"]
+    best_threshold = 0.5
 
     logger.info(f"Using best threshold: {best_threshold:.3f}")
 

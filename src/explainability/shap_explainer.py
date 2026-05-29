@@ -29,7 +29,7 @@ from loguru import logger
 ROOT = Path(__file__).resolve().parents[2]
 MODEL_PATH = ROOT / "models" / "xgboost_defect_predictor.json"
 META_PATH = ROOT / "models" / "model_meta.json"
-FEATURE_MATRIX_PATH = ROOT / "data" / "processed" / "feature_matrix.csv"
+FEATURE_MATRIX_PATH = ROOT / "data" / "processed" / "feature_matrix_final.csv"
 SHAP_VALUES_PATH = ROOT / "data" / "processed" / "shap_values.csv"
 FIGURES_DIR = ROOT / "reports" / "figures"
 
@@ -53,6 +53,8 @@ def load_model_and_data() -> tuple:
         file_paths: Series of file path identifiers.
     """
     logger.info("Loading model for SHAP analysis...")
+    
+    import xgboost as xgb
     model = xgb.XGBClassifier()
     model.load_model(str(MODEL_PATH))
 
@@ -95,7 +97,7 @@ def compute_shap_values(model: xgb.XGBClassifier, X: pd.DataFrame) -> np.ndarray
         shap_values: np.ndarray of shape (n_samples, n_features).
     """
     logger.info("Computing SHAP values via TreeExplainer (this may take ~30s)...")
-    explainer = shap.TreeExplainer(model)
+    explainer = shap.TreeExplainer(getattr(model, "calibrated_classifiers_", [model])[0].estimator if hasattr(model, "calibrated_classifiers_") else model)
     shap_output = explainer.shap_values(X)
 
     # For XGBoost binary classifier, shap_values is already (n, f)

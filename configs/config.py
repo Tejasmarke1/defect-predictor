@@ -44,7 +44,7 @@ FEATURES = {
     "short_window_days": 30,
     "long_window_days": 90,
     # Minimum commits for a file to be included
-    "min_commits": 3,
+    "min_commits": 2,
     # GNN node feature dimension
     "ast_node_types": [
         "Module", "FunctionDef", "AsyncFunctionDef", "ClassDef",
@@ -60,7 +60,7 @@ FEATURES = {
 # ── Model Config ───────────────────────────────────────────────────────────────
 MODEL = {
     # Temporal split - test on last N months
-    "test_months": 3,
+    "test_months": 12,
     # XGBoost defaults (will be tuned by Optuna)
     "xgb_defaults": {
         "n_estimators": 300,
@@ -71,7 +71,6 @@ MODEL = {
         "eval_metric": "logloss",
         "random_state": 42,
         "n_splits": 5,
-        "scale_pos_weight": 3,       # revert to original
         "min_child_weight": 5,       # NEW — forces confident splits only
         "gamma": 1.0,
         "early_stopping_rounds": 30,
@@ -82,7 +81,7 @@ MODEL = {
         "embedding_dim": 32,
         "num_layers": 3,
         "dropout": 0.3,
-        "epochs": 100,
+        "epochs": 200,
         "lr": 0.001,
         "batch_size": 32,
     },
