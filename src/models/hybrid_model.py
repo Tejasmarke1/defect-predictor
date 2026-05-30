@@ -62,8 +62,14 @@ class HybridDefectModel:
           3. If embedding missing → use np.zeros(32)
         Returns array of shape [N, 54].
         """
-        tab_cols = self._get_tabular_cols(df_features)
-        self._feature_cols = tab_cols  # cache for importance naming
+        if not self._feature_cols:
+            self._feature_cols = self._get_tabular_cols(df_features)
+            
+        tab_cols = self._feature_cols
+        
+        missing = [c for c in tab_cols if c not in df_features.columns]
+        for c in missing:
+            df_features[c] = 0.0
 
         tab_matrix = df_features[tab_cols].values.astype(np.float32)  # [N, 22]
 

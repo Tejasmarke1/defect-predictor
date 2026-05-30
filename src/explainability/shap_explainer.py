@@ -285,6 +285,32 @@ def explain_module(
     return explanation
 
 
+class SHAPExplainer:
+    """
+    Stateful SHAP explainer for real-time API explanation.
+    """
+    def __init__(self, defect_xgb_model) -> None:
+        self.defect_xgb_model = defect_xgb_model
+        model = getattr(defect_xgb_model, "model", defect_xgb_model)
+        
+        # Pull out the XGBClassifier estimator directly if it's wrapped
+        est = getattr(model, "calibrated_classifiers_", [model])[0]
+        if hasattr(est, "estimator"):
+            est = est.estimator
+
+        self.explainer = shap.TreeExplainer(est)
+
+    def explain(self, X: np.ndarray) -> np.ndarray:
+        """
+        Compute SHAP values for the input array.
+        Returns array of shape [n_samples, n_features].
+        """
+        shap_output = self.explainer.shap_values(X)
+        if isinstance(shap_output, list):
+            return shap_output[1]
+        return shap_output
+
+
 def run_shap_analysis() -> pd.Series:
     """
     Full SHAP pipeline: load data → compute SHAP → save global plots + CSV.

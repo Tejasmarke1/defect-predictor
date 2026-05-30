@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: defect-predictor-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data           # persist mined datasets
+      - ./models:/app/models       # persist trained models
+      - ./mlruns:/app/mlruns       # persist MLflow experiment runs
+      - ./logs:/app/logs           # persist loguru logs
+    environment:
+      - LOG_LEVEL=INFO
+      - API_WORKERS=2
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # Optional: MLflow tracking UI — access at http://localhost:5000
+  mlflow:
+    image: python:3.11-slim
+    container_name: defect-predictor-mlflow
+    command: >
+      sh -c "pip install mlflow --quiet &&
+             mlflow ui --host 0.0.0.0 --port 5000 --backend-store-uri /mlruns"
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlruns:/mlruns
+    restart: unless-stopped
+    profiles:
+      - mlflow   # only starts with: docker compose --profile mlflow up
